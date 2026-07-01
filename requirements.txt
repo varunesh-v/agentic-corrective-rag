@@ -11,3 +11,4 @@ PyMuPDF
 groq
 tavily-python
 python-dotenv
+torchvision
