@@ -41,7 +41,7 @@ uploaded_names = sorted(
     [file.name for file in uploaded_files]
 ) if uploaded_files else []
 
-# User removed all PDFs
+
 if previous_files and not uploaded_files:
     st.session_state.pop(
         "uploaded_vector_db",
@@ -71,7 +71,7 @@ if (
                 delete=False,
                 suffix=".pdf"
             ) as tmp_file:
-
+                uploaded_file.seek(0)
                 tmp_file.write(
                     uploaded_file.read()
                 )
@@ -96,6 +96,10 @@ if (
         chunked_docs = splitter.split_documents(
             documents
         )
+
+        if "uploaded_vector_db" in st.session_state:
+            del st.session_state["uploaded_vector_db"]
+
 
         uploaded_db = Chroma.from_documents(
             documents=chunked_docs,
