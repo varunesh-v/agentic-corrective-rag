@@ -1,6 +1,6 @@
 import streamlit as st
 import tempfile
-
+import uuid
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -31,36 +31,15 @@ uploaded_files = st.sidebar.file_uploader(
 )
 
 # ---------------- PDF Processing ----------------
-
-previous_files = st.session_state.get(
-    "uploaded_files",
-    []
-)
-
 uploaded_names = sorted(
     [file.name for file in uploaded_files]
 ) if uploaded_files else []
 
 
-if previous_files and not uploaded_files:
-    st.session_state.pop(
-        "uploaded_vector_db",
-        None
-    )
-    st.session_state.pop(
-        "uploaded_files",
-        None
-    )
-    st.session_state.pop(
-        "messages",
-        None
-    )
-
 if (
     uploaded_files and
     st.session_state.get("uploaded_files") != uploaded_names
 ):
-
     with st.spinner("Processing PDFs..."):
 
         documents = []
@@ -71,22 +50,20 @@ if (
                 delete=False,
                 suffix=".pdf"
             ) as tmp_file:
+
                 uploaded_file.seek(0)
+
                 tmp_file.write(
-                    uploaded_file.read()
+                    uploaded_file.getvalue()
                 )
 
                 tmp_path = tmp_file.name
 
-            loader = PyMuPDFLoader(
-                tmp_path
-            )
+            loader = PyMuPDFLoader(tmp_path)
 
             docs = loader.load()
 
-            documents.extend(
-                docs
-            )
+            documents.extend(docs)
 
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
@@ -98,12 +75,25 @@ if (
         )
 
         if "uploaded_vector_db" in st.session_state:
-            del st.session_state["uploaded_vector_db"]
+            try:
+                st.session_state[
+                    "uploaded_vector_db"
+                ].delete_collection()
+            except Exception:
+                pass
 
+            del st.session_state[
+                "uploaded_vector_db"
+            ]
+
+        collection_name = (
+            f"session_{uuid.uuid4().hex[:8]}"
+        )
 
         uploaded_db = Chroma.from_documents(
             documents=chunked_docs,
-            embedding=embedding_model
+            embedding=embedding_model,
+            collection_name=collection_name,
         )
 
         st.session_state.uploaded_vector_db = uploaded_db
@@ -112,7 +102,6 @@ if (
         st.sidebar.success(
             f"Indexed {len(chunked_docs)} chunks."
         )
-
 # ------------------------------------------------
 
 if "messages" not in st.session_state:
