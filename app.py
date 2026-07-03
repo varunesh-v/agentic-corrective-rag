@@ -37,14 +37,10 @@ uploaded_names = sorted(
 ) if uploaded_files else []
 
 if not uploaded_files:
-    st.session_state.pop(
-        "uploaded_vector_db",
-        None
-    )
-    st.session_state.pop(
-        "uploaded_files",
-        None
-    )
+    st.session_state.pop("uploaded_vector_db", None)
+    st.session_state.pop("uploaded_files", None)
+    st.session_state.pop("messages", None)
+    st.rerun()
 
 
 if (
