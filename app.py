@@ -32,16 +32,29 @@ uploaded_files = st.sidebar.file_uploader(
 
 # ---------------- PDF Processing ----------------
 
+previous_files = st.session_state.get(
+    "uploaded_files",
+    []
+)
+
 uploaded_names = sorted(
     [file.name for file in uploaded_files]
 ) if uploaded_files else []
 
-if not uploaded_files:
-    st.session_state.pop("uploaded_vector_db", None)
-    st.session_state.pop("uploaded_files", None)
-    st.session_state.pop("messages", None)
-    st.rerun()
-
+# User removed all PDFs
+if previous_files and not uploaded_files:
+    st.session_state.pop(
+        "uploaded_vector_db",
+        None
+    )
+    st.session_state.pop(
+        "uploaded_files",
+        None
+    )
+    st.session_state.pop(
+        "messages",
+        None
+    )
 
 if (
     uploaded_files and
