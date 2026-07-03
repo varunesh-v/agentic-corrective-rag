@@ -36,6 +36,17 @@ uploaded_names = sorted(
     [file.name for file in uploaded_files]
 ) if uploaded_files else []
 
+if not uploaded_files:
+    st.session_state.pop(
+        "uploaded_vector_db",
+        None
+    )
+    st.session_state.pop(
+        "uploaded_files",
+        None
+    )
+
+
 if (
     uploaded_files and
     st.session_state.get("uploaded_files") != uploaded_names
